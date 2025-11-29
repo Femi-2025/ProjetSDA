@@ -1,0 +1,103 @@
+---
+title: 'Plan du Projet "Santé des Jeunes"'
+author: "A.Moudjidath"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Thème
+
+La santé des jeunes : prévention et sensibilisation digitale à travers les réseaux sociaux en Afrique et à l’international.
+
+## Contexte et Justification
+
+Les jeunes sont aujourd’hui très actifs sur les réseaux sociaux comme Facebook, Instagram ou TikTok, où ils passent une grande partie de leur temps et s’informent principalement en ligne. Cependant, l’information disponible est souvent dispersée, incomplète ou non vérifiée, ce qui limite l’accès à des connaissances fiables sur la santé. Ce projet propose la création d’un système centralisé d’information sur les maladies, combinant un site web, une application mobile et les réseaux sociaux. Il permettra aux jeunes de consulter facilement des informations fiables sur les maladies (définition, symptômes, traitements possibles), de recevoir des conseils pratiques et des rappels de bonnes pratiques, et de savoir vers qui se tourner en cas de problème de santé. Ce système modulable pourra être adapté à différents pays et langues, offrant une plateforme de référence fiable et interactive à l’échelle internationale.
+
+## Bref Résumé
+
+Le projet vise à renforcer la santé des jeunes par une stratégie digitale internationale de sensibilisation via les réseaux sociaux. Il combine la collecte de données par questionnaires, l’analyse statistique et la création de contenus visuels et interactifs (vidéos, infographies, affiches) adaptés aux différentes cultures et langues. La plateforme et l’application mobile prévues permettront de centraliser les informations sur les maladies, d’envoyer des conseils de prévention et de promouvoir de bonnes pratiques, tout en offrant un système modulable par pays.
+
+## Objectifs
+
+### Objectif Général
+
+Promouvoir la santé des jeunes à l’international via une sensibilisation digitale fiable et interactive, adaptable aux réalités culturelles et sanitaires de chaque pays.
+
+### Objectifs Spécifiques
+
+- Réaliser un état des lieux des connaissances, comportements et besoins des jeunes en matière de santé.
+
+- Identifier les réseaux sociaux les plus utilisés, les maladies connues et les obstacles à la santé, afin de prioriser contenus et canaux de diffusion.
+
+- Créer des contenus interactifs et visuels adaptés.
+
+- Diffuser régulièrement des messages de prévention via les réseaux sociaux et l’application mobile.
+
+- Développer une plateforme modulable, capable d’intégrer de nouveaux pays, langues et modules éducatifs pour une diffusion internationale cohérente.
+
+## Méthodologie
+
+### Collecte, Traitement et Analyse des Données
+
+#### Collecte des données
+
+Les données ont été recueillies via des questionnaires en ligne diffusés sur Facebook, Instagram, WhatsApp, TikTok et autres réseaux sociaux. La diffusion était ouverte à tous les jeunes intéressés, sans ciblage géographique spécifique. Cette collecte permettra d’obtenir un état des lieux global des connaissances, comportements, maladies connues et obstacles à la santé, tout en identifiant, après analyse, le pays le plus représenté parmi les répondants.
+
+#### Traitement des données 
+
+Les réponses seront nettoyées, codées et organisées dans R. Les variables seront classées par thèmes : Profil et Informations, Usage du numérique, Connaissances santé, Intérêt & préférences, Engagement & idées. Les doublons et incohérences seront supprimés. Cette organisation permettra d’obtenir des résultats clairs et fiables, qui guideront le déploiement initial de la plateforme.
+
+#### Analyse des données 
+
+L’analyse descriptive mettra en évidence les tendances principales : réseaux sociaux les plus utilisés, maladies connues et obstacles à la santé. Des graphiques et infographies interactives permettront de visualiser ces résultats. L’analyse confirmera le pays majoritaire des répondants (actuellement le Bénin), qui sera le pays bénéficiaire du déploiement initial, avec la possibilité d’extension à l’international ultérieurement.
+
+### Outils et Techniques de Collecte de Données
+
+#### Outils utilisés
+
+Google Forms pour la collecte des questionnaires, R pour le traitement et l’analyse. Canva ou CapCut pour la création de contenus visuels. Le site web et l’application mobile centraliseront les informations et permettront l’envoi de notifications. Ces outils sont adaptés à une collecte ouverte et à une population jeune et internationale, et permettent de traiter efficacement les données même si le public est hétérogène.
+
+#### Techniques appliquées  
+
+Diffusion ouverte des questionnaires sur plusieurs réseaux sociaux. Analyse descriptive des réponses pour identifier tendances générales : réseaux les plus utilisés, maladies connues et obstacles à la santé. L’approche est adaptative : le pays majoritaire parmi les répondants, sera ciblé pour le déploiement initial, avec possibilité d’élargir ensuite la plateforme et l’application à d’autres pays et langues.
+
+## Résultats
+
+### Principales Informations Dérivées de l’Analyse des Données
+
+Les résultats permettront d’identifier les maladies et problématiques sanitaires prioritaires pour les jeunes, leur niveau de connaissances ainsi que leurs comportements. L’analyse confirmera le pays majoritaire des répondants, qui sera donc ciblé pour le déploiement initial de la plateforme. Ces données guideront la création de contenus pertinents et interactifs, définiront les formats de diffusion les plus efficaces et prépareront l’extension internationale future de la plateforme et de l’application.
+
+### Format de Présentation des Résultats 
+
+Les résultats seront présentés via un rapport Markdown clair et structuré, incluant tableaux, graphiques et visualisations interactives. Pour aller plus loin, une application Shiny pourra permettre d’explorer les données de manière interactive et dynamique. Un site web centralisera également les informations clés et les infographies, facilitant l’accès aux résultats et leur diffusion auprès des jeunes, des éducateurs et des acteurs sanitaires.
+
+## Conclusion et Perspectives
+
+### Impact sociétal
+
+Ce projet contribuera à améliorer la santé et le bien-être des jeunes à l’international. En centralisant des informations fiables et en les diffusant via les réseaux sociaux et l’application mobile, il permettra de réduire la désinformation, de renforcer les comportements de prévention et de responsabiliser les jeunes face à leur santé. L’approche digitale garantit une large portée et un engagement élevé, tandis que l’adaptation culturelle et linguistique assure la pertinence des messages. Cette initiative peut devenir une référence internationale pour l’éducation sanitaire des jeunes.
+
+### Orientations futures
+
+La plateforme pourra évoluer vers une version complète et internationale, intégrant de nouveaux pays et langues, proposant des contenus actualisés et interactifs. L’application offrira des notifications et conseils personnalisés. Des partenariats avec acteurs locaux et internationaux garantiront la durabilité et la pertinence du système à long terme, faisant de la plateforme un réseau mondial de sensibilisation à la santé des jeunes.
+
+## Difficultés Rencontrées et Solutions Employées
+
+### Difficultés
+
+### Solutions
+
+
+
+
+
+
+

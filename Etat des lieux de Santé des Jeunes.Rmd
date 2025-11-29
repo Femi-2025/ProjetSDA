@@ -1,0 +1,118 @@
+---
+title: "État des lieux du réseau Santé des Jeunes"
+author: "A. Moudjidath"
+output: word_document
+params:
+  sheet_url: "https://docs.google.com/spreadsheets/d/1r1KYd7ObMM-e2Nb2od_3fTdejYox4vYyOXEBUO7NaX8/edit?usp=sharing"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+Sys.setenv(TZ = "Africa/Porto-Novo")
+
+library(googlesheets4)
+library(dplyr)
+library(tidyr)
+library(janitor)
+library(stringr)
+library(ggplot2)
+library(knitr)
+
+# Lecture du Google Sheet (public)
+gs4_deauth()
+donnees <- read_sheet("https://docs.google.com/spreadsheets/d/1r1KYd7ObMM-e2Nb2od_3fTdejYox4vYyOXEBUO7NaX8/edit?usp=sharing") %>%
+  clean_names() %>%   # standardise les noms de colonnes (minuscules, underscores)
+  mutate(
+    across(
+      everything(),
+      ~ str_to_title(str_squish(as.character(.x)))  # supprime espaces inutiles + uniformise majuscules/minuscules
+    )
+  )
+glimpse(donnees)
+```
+
+
+*Rapport mis à jour le* `r format(Sys.time(), '%d %B %Y à %Hh%M')`
+
+## I. Introduction générale
+
+Coucou à tous ceux qui lisent ce rapport  
+
+Ce projet, c’est un peu ma façon à moi de **mettre en pratique tout ce que j’ai appris pendant ma formation en SDA** et de garder une trace concrète de mes acquis parce que le cerveau, parfois, aime bien faire le tri tout seul.  
+
+L’idée m’est venue d’une question toute simple :  
+*Et si on parlait de santé aux jeunes, mais sur les réseaux, à leur manière ?* 
+
+De là est née l’envie de créer un **réseau “Santé des Jeunes”**, un espace en ligne où l’on pourrait partager des contenus de prévention, des conseils simples et des informations fiables, dans un format qui donne envie d’apprendre et de participer.  
+
+Avant d’aller plus loin, j’ai voulu savoir si ce projet **intéresserait vraiment les jeunes**.  
+J’ai donc réalisé un **questionnaire en ligne** destiné aux 18 ans et plus, pour comprendre :  
+- leurs habitudes sur les réseaux sociaux,  
+- les thèmes de santé qui les intéressent le plus,  
+- et surtout, leur envie (ou non) de rejoindre un réseau dédié à la santé des jeunes.  
+
+Les résultats de ce questionnaire sont présentés dans ce rapport, qui comporte deux parties :  
+1. une **analyse descriptive** pour mieux comprendre qui a répondu et quelles tendances ressortent,  
+2. et une **analyse analytique**, pour explorer le lien entre l’usage des réseaux sociaux et l’intérêt pour la création du réseau “Santé des Jeunes”.  
+
+Ce projet fait partie de mon parcours de validation en formation SDA.  
+Et si tu fais partie de ceux qui ont pris le temps de répondre au questionnaire, **MERCI BEAUCOUP**.  
+Et si tu tombes sur ce rapport sans l’avoir encore fait, tu peux encore participer ici :  
+[Remplir le questionnaire Santé des Jeunes](https://forms.gle/hjdtQCREu2CjzEwF8)
+
+
+## II. Analyse descriptive
+
+Avant de plonger dans les chiffres, prenons un petit moment pour découvrir qui sont les jeunes qui ont participé à ce questionnaire.
+
+1. Répartition par âge
+
+Premier stop : la tranche d’âge.
+
+```{r}
+
+# 1 La colonne âge
+col_age <- "age"
+stopifnot(col_age %in% names(donnees))
+
+# 2 Tableau des effectifs et pourcentages
+age_tab <- donnees %>%
+  count(classe = .data[[col_age]], name = "n") %>%
+  mutate(
+    pct = round(100 * n / sum(n), 1),
+    alpha_value = seq(0.4, 1, length.out = n())  # crée un dégradé d'opacité
+  ) %>%
+  arrange(desc(n))
+
+# 3 Graphique avec couleur #1e4387 et dégradé d'opacité
+ggplot(age_tab, aes(x = classe, y = pct)) +
+  geom_col(aes(fill = alpha_value), color = NA) +
+  geom_text(aes(label = paste0(pct, "%")), vjust = -0.5, size = 4, color = "#1e4387") +
+  scale_fill_gradient(low = "#1e4387AA", high = "#1e4387") +  # dégradé d'opacité
+  labs(
+    title = "Répartition des répondants selon la classe d'âge",
+    x = "Classe d'âge",
+    y = "Pourcentage (%)"
+  ) +
+  theme_void(base_size = 13) +
+theme(
+  plot.title = element_text(
+    size = 14,
+    face = "bold",
+    hjust = 0.5,
+    color = "#1e4387",
+    margin = margin(b = 15)  # <-- espace sous le titre
+  ),
+  axis.text.x = element_text(color = "#1e4387", face = "bold"),
+  axis.text.y = element_blank(),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  legend.position = "none",
+  plot.margin = margin(t = 25, r = 10, b = 10, l = 10)  # <-- marge autour du graphique
+)
+
+```
+
+Surprise ou pas ?
+La grande majorité des répondants sont des jeunes adultes entre **25 et 34 ans**, avec environ **63 %** des réponses !
+On est pile dans la cible du projet “Santé des Jeunes”.
