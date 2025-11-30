@@ -32,6 +32,41 @@ glimpse(donnees)
 ```
 
 
+```{r}
+# On va utiliser ce chunk pour le recodage et le nettoyage.
+# D'abord on crée des variables ordonnées pour nous permettre de mieux analyser quand il s'agira du volet analytique.
+
+donnees_clean <- donnees %>%
+  mutate(
+    freq_rs_ord = factor(utilisez_vous_regulierement_les_reseaux_sociaux,
+                         levels = c("Jamais", "Rarement", "Oui, plusieurs fois par semaine", "Oui, tous les jours"),
+                         ordered = TRUE),
+    interet_niveau = factor(seriez_vous_interesse_e_a_recevoir_regulierement_des_contenus_de_sensibilisation_videos_infographies_quiz_via_les_reseaux_sociaux,
+                            levels = c("Non, pas intéressé(e)", "Oui, un peu intéressé(e)", "Oui, très intéressé(e)"),
+                            ordered = TRUE),
+    engagement_niveau = factor(accepteriez_vous_de_participer_activement_partager_commenter_repondre_aux_quiz_pour_encourager_d_autres_jeunes_a_adopter_de_bonnes_pratiques_de_sante,
+                               levels = c("Non", "Peut-etre", "Oui"), 
+                               ordered = TRUE)
+  )
+
+glimpse(donnees_clean)
+```
+
+
+```{r}
+# On continue avec le nettoyage et le recodage
+# Les colonnes de : Plateformes - Formats - Maladies - Thèmes
+# mutate va modifier les fonctions, accross va permettre d'apliquer la même chose sans répéter le code, starts_with va notifier que ce sont les colonnes dont le nom commence par ...
+
+donnees_clean_bin <- donnees_clean %>%
+  mutate(across(
+    starts_with("quelles_plateformes") | starts_with("quels_formats") | starts_with("parmi_les_maladies") | starts_with("quels_themes"),
+    ~ ifelse(is.na(.), 0, 1) # c-a-d la réponse est NA, c'est 0 (non coché), sinon c'est 1 (coché)
+  ))
+glimpse(donnees_clean_bin)
+```
+
+
 *Rapport mis à jour le* `r format(Sys.time(), '%d %B %Y à %Hh%M')`
 
 ## I. Introduction générale
