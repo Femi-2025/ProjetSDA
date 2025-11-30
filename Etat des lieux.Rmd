@@ -15,7 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Thème
 
-La santé des jeunes : prévention et sensibilisation digitale à travers les réseaux sociaux en Afrique et à l’international.
+                       SANTE DES JEUNES
+Prévention et sensibilisation digitale à travers les réseaux sociaux en Afrique et à l’international.
 
 ## Contexte et Justification
 
@@ -23,7 +24,7 @@ Les jeunes sont aujourd’hui très actifs sur les réseaux sociaux comme Facebo
 
 ## Bref Résumé
 
-Le projet vise à renforcer la santé des jeunes par une stratégie digitale internationale de sensibilisation via les réseaux sociaux. Il combine la collecte de données par questionnaires, l’analyse statistique et la création de contenus visuels et interactifs (vidéos, infographies, affiches) adaptés aux différentes cultures et langues. La plateforme et l’application mobile prévues permettront de centraliser les informations sur les maladies, d’envoyer des conseils de prévention et de promouvoir de bonnes pratiques, tout en offrant un système modulable par pays.
+Le projet vise à renforcer la santé des jeunes par une stratégie digitale de sensibilisation via les réseaux sociaux. Il combine la collecte de données par questionnaires, l’analyse statistique et la création de contenus visuels et interactifs (vidéos, infographies, affiches) adaptés aux différentes cultures. La plateforme et l’application mobile prévues permettront de centraliser les informations sur les maladies, d’envoyer des conseils de prévention et de promouvoir de bonnes pratiques, tout en offrant un système modulable par pays.
 
 ## Objectifs
 
@@ -49,7 +50,7 @@ Promouvoir la santé des jeunes à l’international via une sensibilisation dig
 
 #### Collecte des données
 
-Les données ont été recueillies via des questionnaires en ligne diffusés sur Facebook, Instagram, WhatsApp, TikTok et autres réseaux sociaux. La diffusion était ouverte à tous les jeunes intéressés, sans ciblage géographique spécifique. Cette collecte permettra d’obtenir un état des lieux global des connaissances, comportements, maladies connues et obstacles à la santé, tout en identifiant, après analyse, le pays le plus représenté parmi les répondants.
+Les données ont été recueillies via des questionnaires en ligne diffusés sur LinkedIn, WhatsApp et autres réseaux sociaux. La diffusion était ouverte à tous les jeunes intéressés, sans ciblage géographique spécifique. Cette collecte permettra d’obtenir un état des lieux global des connaissances, comportements, maladies connues et obstacles à la santé, tout en identifiant, après analyse, le pays le plus représenté parmi les répondants.
 
 #### Traitement des données 
 
@@ -57,17 +58,17 @@ Les réponses seront nettoyées, codées et organisées dans R. Les variables se
 
 #### Analyse des données 
 
-L’analyse descriptive mettra en évidence les tendances principales : réseaux sociaux les plus utilisés, maladies connues et obstacles à la santé. Des graphiques et infographies interactives permettront de visualiser ces résultats. L’analyse confirmera le pays majoritaire des répondants (actuellement le Bénin), qui sera le pays bénéficiaire du déploiement initial, avec la possibilité d’extension à l’international ultérieurement.
+L’analyse descriptive mettra en évidence les tendances principales : réseaux sociaux les plus utilisés, maladies connues et obstacles à la santé. Des graphiques et infographies interactives permettront de visualiser ces résultats. L’analyse confirmera le pays majoritaire des répondants, qui sera le pays bénéficiaire du déploiement initial, avec la possibilité d’extension à l’international ultérieurement.
 
 ### Outils et Techniques de Collecte de Données
 
 #### Outils utilisés
 
-Google Forms pour la collecte des questionnaires, R pour le traitement et l’analyse. Canva ou CapCut pour la création de contenus visuels. Le site web et l’application mobile centraliseront les informations et permettront l’envoi de notifications. Ces outils sont adaptés à une collecte ouverte et à une population jeune et internationale, et permettent de traiter efficacement les données même si le public est hétérogène.
+Google Forms pour la collecte des questionnaires, R pour le traitement et l’analyse. Canva, CapCut et l'IA pour la création de contenus visuels. Le site web et l’application mobile centraliseront les informations et permettront l’envoi de notifications. Ces outils sont adaptés à une collecte ouverte et à une population jeune et internationale, et permettent de traiter efficacement les données même si le public est hétérogène.
 
 #### Techniques appliquées  
 
-Diffusion ouverte des questionnaires sur plusieurs réseaux sociaux. Analyse descriptive des réponses pour identifier tendances générales : réseaux les plus utilisés, maladies connues et obstacles à la santé. L’approche est adaptative : le pays majoritaire parmi les répondants, sera ciblé pour le déploiement initial, avec possibilité d’élargir ensuite la plateforme et l’application à d’autres pays et langues.
+Diffusion ouverte des questionnaires sur plusieurs réseaux sociaux. Analyse descriptive des réponses pour identifier les tendances générales : réseaux les plus utilisés, maladies connues et obstacles à la santé. L’approche est adaptative : le pays majoritaire parmi les répondants, sera ciblé pour le déploiement initial, avec possibilité d’élargir ensuite la plateforme et l’application à d’autres pays et langues.
 
 ## Résultats
 
