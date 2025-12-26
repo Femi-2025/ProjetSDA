@@ -1,7 +1,13 @@
 ---
 title: "État des lieux du réseau Santé des Jeunes"
 author: "A. Moudjidath"
-output: word_document
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    theme: cerulean
+    highlight: textmate
 params:
   sheet_url: "https://docs.google.com/spreadsheets/d/1r1KYd7ObMM-e2Nb2od_3fTdejYox4vYyOXEBUO7NaX8/edit?usp=sharing"
 ---
@@ -17,53 +23,59 @@ library(janitor)
 library(stringr)
 library(ggplot2)
 library(knitr)
+library(ggwordcloud)
 
 # Lecture du Google Sheet (public)
 gs4_deauth()
 donnees <- read_sheet("https://docs.google.com/spreadsheets/d/1r1KYd7ObMM-e2Nb2od_3fTdejYox4vYyOXEBUO7NaX8/edit?usp=sharing") %>%
   clean_names() %>%   # standardise les noms de colonnes (minuscules, underscores)
+  rename(
+    age_classe = age,
+    sexe = sexe,
+    pays = pays_de_residence,
+    occupation = quelle_est_votre_occupation_principale, 
+    freq_rs = utilisez_vous_regulierement_les_reseaux_sociaux, 
+    interet_projet = seriez_vous_interesse_e_a_recevoir_regulierement_des_contenus_de_sensibilisation_videos_infographies_quiz_via_les_reseaux_sociaux,
+    engagement_actif = accepteriez_vous_de_participer_activement_partager_commenter_repondre_aux_quiz_pour_encourager_d_autres_jeunes_a_adopter_de_bonnes_pratiques_de_sante,
+    sensibilisation = selon_vous_quelle_est_la_meilleure_maniere_de_sensibiliser_les_jeunes_a_la_sante_via_les_reseaux_sociaux,
+    plateformes = quelles_plateformes_utilisez_vous_le_plus_plusieurs_choix_sont_possibles,
+    maladies    = parmi_les_maladies_suivantes_lesquelles_connaissez_vous_le_mieux_plusieurs_choix_sont_possibles,
+    obstacles   = selon_vous_quel_est_le_principal_obstacle_qui_empeche_les_jeunes_de_prendre_soin_de_leur_sante_plusieurs_choix_sont_possibles,
+    formats     = quels_formats_preferez_vous_pour_apprendre_sur_la_sante_plusieurs_choix_sont_possibles,
+    themes      = quels_themes_de_sante_vous_interessent_le_plus
+  ) %>%
+  
   mutate(
     across(
       everything(),
-      ~ str_to_title(str_squish(as.character(.x)))  # supprime espaces inutiles + uniformise majuscules/minuscules
+      ~ str_to_title(str_squish(as.character(.x)))
     )
-  )
+  ) # str_to_title(str_squish(as.character(.x)) standardise les noms de colonnes (minuscules, underscores)
+
 glimpse(donnees)
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # On va utiliser ce chunk pour le recodage et le nettoyage.
-# D'abord on crée des variables ordonnées pour nous permettre de mieux analyser quand il s'agira du volet analytique.
-
-donnees_clean <- donnees %>%
-  mutate(
-    freq_rs_ord = factor(utilisez_vous_regulierement_les_reseaux_sociaux,
-                         levels = c("Jamais", "Rarement", "Oui, plusieurs fois par semaine", "Oui, tous les jours"),
-                         ordered = TRUE),
-    interet_niveau = factor(seriez_vous_interesse_e_a_recevoir_regulierement_des_contenus_de_sensibilisation_videos_infographies_quiz_via_les_reseaux_sociaux,
-                            levels = c("Non, pas intéressé(e)", "Oui, un peu intéressé(e)", "Oui, très intéressé(e)"),
-                            ordered = TRUE),
-    engagement_niveau = factor(accepteriez_vous_de_participer_activement_partager_commenter_repondre_aux_quiz_pour_encourager_d_autres_jeunes_a_adopter_de_bonnes_pratiques_de_sante,
-                               levels = c("Non", "Peut-etre", "Oui"), 
-                               ordered = TRUE)
-  )
-
-glimpse(donnees_clean)
-```
-
-
-```{r}
-# On continue avec le nettoyage et le recodage
-# Les colonnes de : Plateformes - Formats - Maladies - Thèmes
+# D'abord on crée des variables ordonnées pour nous permettre de mieux analyser
+# Les colonnes : Plateformes - Formats - Maladies - Thèmes
 # mutate va modifier les fonctions, accross va permettre d'apliquer la même chose sans répéter le code, starts_with va notifier que ce sont les colonnes dont le nom commence par ...
 
-donnees_clean_bin <- donnees_clean %>%
-  mutate(across(
-    starts_with("quelles_plateformes") | starts_with("quels_formats") | starts_with("parmi_les_maladies") | starts_with("quels_themes"),
-    ~ ifelse(is.na(.), 0, 1) # c-a-d la réponse est NA, c'est 0 (non coché), sinon c'est 1 (coché)
-  ))
-glimpse(donnees_clean_bin)
+donnees_final <- donnees %>%
+  mutate(
+    freq_rs_ord = factor(freq_rs, 
+                        levels = c("Jamais", 
+                                   "Rarement", 
+                                   "Oui, Plusieurs Fois Par Semaine", 
+                                   "Oui, Tous Les Jours"), 
+                        ordered = TRUE),
+    interet_niveau = factor(interet_projet, levels = c("Non, pas intéressé(e)", "Oui, un peu intéressé(e)", "Oui, très intéressé(e)"), ordered = TRUE),
+    engagement_ord = factor(engagement_actif, levels = c("Non", "Peut-etre", "Oui"), ordered = TRUE)
+  )
+# Vérification finale de la structure
+glimpse(donnees_final)
+
 ```
 
 
@@ -86,68 +98,521 @@ J’ai donc réalisé un **questionnaire en ligne** destiné aux 18 ans et plus,
 - les thèmes de santé qui les intéressent le plus,  
 - et surtout, leur envie (ou non) de rejoindre un réseau dédié à la santé des jeunes.  
 
-Les résultats de ce questionnaire sont présentés dans ce rapport, qui comporte deux parties :  
-1. une **analyse descriptive** pour mieux comprendre qui a répondu et quelles tendances ressortent,  
-2. et une **analyse analytique**, pour explorer le lien entre l’usage des réseaux sociaux et l’intérêt pour la création du réseau “Santé des Jeunes”.  
+Les résultats de ce questionnaire sont présentés dans ce rapport, qui comporte une **analyse descriptive** pour mieux comprendre qui a répondu et quelles tendances ressortent.  
 
 Ce projet fait partie de mon parcours de validation en formation SDA.  
 Et si tu fais partie de ceux qui ont pris le temps de répondre au questionnaire, **MERCI BEAUCOUP**.  
-Et si tu tombes sur ce rapport sans l’avoir encore fait, tu peux encore participer ici :  
-[Remplir le questionnaire Santé des Jeunes](https://forms.gle/hjdtQCREu2CjzEwF8)
+Par contre, si tu tombes sur ce rapport sans l’avoir encore fait, tu peux encore participer ici :  
 
+[Remplir le questionnaire Santé des Jeunes](https://forms.gle/hjdtQCREu2CjzEwF8)
 
 ## II. Analyse descriptive
 
 Avant de plonger dans les chiffres, prenons un petit moment pour découvrir qui sont les jeunes qui ont participé à ce questionnaire.
 
-1. Répartition par âge
+### Section 1 : Profil et informations démographiques
 
-Premier stop : la tranche d’âge.
+#### 1. Répartition par âge
 
-```{r}
+Surprise ou pas ?
 
-# 1 La colonne âge
-col_age <- "age"
-stopifnot(col_age %in% names(donnees))
+```{r, echo=FALSE}
 
-# 2 Tableau des effectifs et pourcentages
-age_tab <- donnees %>%
-  count(classe = .data[[col_age]], name = "n") %>%
+age_tab <- donnees_final %>%
+  count(age_classe, name = "n") %>%
   mutate(
-    pct = round(100 * n / sum(n), 1),
-    alpha_value = seq(0.4, 1, length.out = n())  # crée un dégradé d'opacité
+    pct = round(100 * n / sum(n), 1)
   ) %>%
-  arrange(desc(n))
+  arrange(factor(age_classe, levels = c("Moins De 18 Ans", "18 – 24 Ans", "25 – 34 Ans", "35 Ans Et Plus")))
 
-# 3 Graphique avec couleur #1e4387 et dégradé d'opacité
-ggplot(age_tab, aes(x = classe, y = pct)) +
-  geom_col(aes(fill = alpha_value), color = NA) +
-  geom_text(aes(label = paste0(pct, "%")), vjust = -0.5, size = 4, color = "#1e4387") +
-  scale_fill_gradient(low = "#1e4387AA", high = "#1e4387") +  # dégradé d'opacité
-  labs(
-    title = "Répartition des répondants selon la classe d'âge",
-    x = "Classe d'âge",
-    y = "Pourcentage (%)"
-  ) +
-  theme_void(base_size = 13) +
-theme(
-  plot.title = element_text(
-    size = 14,
-    face = "bold",
-    hjust = 0.5,
-    color = "#1e4387",
-    margin = margin(b = 15)  # <-- espace sous le titre
-  ),
-  axis.text.x = element_text(color = "#1e4387", face = "bold"),
-  axis.text.y = element_blank(),
-  axis.title.x = element_blank(),
-  axis.title.y = element_blank(),
-  legend.position = "none",
-  plot.margin = margin(t = 25, r = 10, b = 10, l = 10)  # <-- marge autour du graphique
-)
+ggplot(age_tab, aes(x = age_classe, y = pct)) +
+  geom_col(fill = "#1e4387") + 
+  geom_text(aes(label = paste0(pct, "%")), vjust = -0.5, size = 4, color = "black") + 
+  coord_cartesian(clip = "off") +
+  labs(title = "Figure 1 : Répartition des répondants selon la classe d'âge",x = "Classe d'âge",
+       y = "Pourcentage (%)") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, color = "#1e4387"))
 
 ```
 
-Surprise ou pas ?
-La grande majorité des répondants sont des jeunes adultes entre **25 et 34 ans**, avec environ **63 %** des réponses !
+La grande majorité des répondants sont des jeunes adultes entre **25 et 34 ans**, avec pourcentage de **`r age_tab %>% filter(age_classe == "25 – 34 Ans") %>% pull(pct)`** !
 On est pile dans la cible du projet “Santé des Jeunes”.
+
+#### 2. Répartition par sexe
+
+```{r, echo=FALSE}
+
+sexe_tab <- donnees_final %>%
+  count(sexe, name = "n") %>%
+  mutate(
+    pct = round(100 * n / sum(n), 1)
+  ) %>%
+  arrange(desc(pct))
+
+ggplot(sexe_tab, aes(x = "", y = pct, fill = sexe)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = paste0(pct, "%")), position = position_stack(vjust = 0.5), color = "white") +
+  scale_fill_manual(values = c("Féminin" = "#1e4387", "Masculin" = "#1e4387B0")) +
+  labs(
+    title = "Figure 2 : Proportion des répondants par sexe",
+    fill = "Sexe"
+  ) +
+  theme_void(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, color = "#1e4387", size = 14),
+    legend.position = "right"
+  )
+
+```
+
+
+#### 3. Répartition par pays de résidence
+
+```{r, echo=FALSE}
+
+pays_tab <- donnees_final %>%
+  count(pays, name = "n") %>%
+  mutate(
+    pct = round(100 * n / sum(n), 1)
+  ) %>%
+  arrange(desc(n)) %>%
+  slice_head(n = 10)
+
+ggplot(pays_tab, aes(x = reorder(pays, n), y = n)) +
+  geom_col(fill = "#1e4387") +
+  geom_text(aes(label = paste0(pct, "%")), hjust = -0.2, size = 4, color = "black") +
+  coord_flip() +
+  labs(title = "Figure 3 : Top 10 des pays de résidence des répondants",
+       x = NULL,
+       y = "Effectif (n)") +
+  theme_minimal(base_size = 12   ) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, color = "#1e4387"))
+
+```
+
+
+#### 4. Répartition par occupation
+
+
+```{r, echo=FALSE}
+
+occupation_tab <- donnees_final %>%
+  count(occupation, name = "n") %>%
+  mutate(
+    pct = round(100 * n / sum(n), 1)
+  ) %>%
+  arrange(desc(n))
+
+# Graphique (Horizontal pour les noms de catégories)
+ggplot(occupation_tab, aes(x = reorder(occupation, pct), y = pct)) +
+  geom_col(fill = "#1e4387") +
+  
+  # Les étiquettes de pourcentage
+  geom_text(aes(label = paste0(pct, "%")), hjust = -0.2, size = 4, color = "black") +
+  
+  coord_flip() + 
+  
+  # Cette ligne ajoute de la marge (20%) au bout des barres pour que le texte rentre
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+ 
+  labs(
+    title = "Figure 4 : Profil professionnel des répondants",
+    x = NULL,
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.3, color = "#1e4387"))
+
+```
+
+
+### Section 2 : Usage du numérique 
+
+#### 1. Fréquence d'utilisation des réseaux sociaux
+
+```{r}
+# On prépare les données pour le graphique
+freq_tab <- donnees_final %>%
+  count(freq_rs_ord, .drop = FALSE) %>% 
+  mutate(
+    pct = round(100 * n / sum(n), 1)
+  )
+
+# Génération du graphique
+ggplot(freq_tab, aes(x = freq_rs_ord, y = pct)) +
+  geom_col(fill = "#1e4387") + 
+  
+  # Ajout des étiquettes (0% s'affichera pour Jamais)
+  geom_text(aes(label = paste0(pct, "%")), vjust = -0.5, size = 4, fontface = "bold") +
+  
+  # Ajustement de l'échelle pour ne pas couper le texte en haut
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  
+  labs(
+    title = "Figure 5 : Fréquence d'utilisation des réseaux sociaux",
+    x = "Fréquence déclarée",
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, color = "#1e4387"),
+    axis.text.x = element_text(angle = 15, hjust = 1) # Inclinaison pour la lisibilité
+  )
+```
+
+#### 2. Les plateformes utilisées
+
+```{r}
+#### 1. Quelles sont les plateformes les plus utilisées ?
+
+# 1. On prépare les données à partir de la colonne renommée 'plateformes'
+plateformes_tab <- donnees %>%
+  select(plateformes) %>% 
+  
+  # On sépare les réseaux par la virgule pour éclater les listes
+  separate_rows(plateformes, sep = ", ") %>%
+  
+  # Nettoyage : suppression des espaces et mise en majuscule de la première lettre
+  mutate(plateformes = str_to_title(str_trim(plateformes))) %>%
+  
+  # ON GARDE TOUT sauf les textes techniques du questionnaire
+  filter(!plateformes %in% c("", "NA")) %>%
+  
+  # On compte le nombre de fois que chaque plateforme apparaît
+  count(plateformes, name = "n") %>%
+  
+  # Calcul du pourcentage sur le total de répondants
+  mutate(pct = round(100 * n / nrow(donnees), 1)) %>%
+  arrange(desc(pct))
+
+# 2. Création du graphique
+ggplot(plateformes_tab, aes(x = reorder(plateformes, pct), y = pct)) +
+  geom_col(fill = "#1e4387") +
+  
+  # Étiquettes de pourcentage
+  geom_text(aes(label = paste0(pct, "%")), 
+            hjust = -0.1, 
+            size = 4, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  
+  coord_flip() +
+  
+  # On donne de l'air à droite pour les étiquettes
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  
+  labs(
+    title = "Figure 6 : Plateformes sociales les plus utilisées",
+    subtitle = "Taux de citation par répondant",
+    x = NULL,
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+### Section 3 : Connaissances santé
+
+#### 1. Les maladies les mieux connues
+
+```{r}
+# 1. Préparation des données pour le TOP 5
+maladies_tab <- donnees %>%
+  select(maladies) %>% 
+  
+  # On sépare les maladies par la virgule
+  separate_rows(maladies, sep = ", ") %>%
+  
+  # Nettoyage de la casse et des espaces
+  mutate(maladies = str_to_title(str_trim(maladies))) %>%
+  
+  # On retire les textes parasites
+  filter(!maladies %in% c("Plusieurs Choix Sont Possibles", "", "NA")) %>%
+  
+  # On compte chaque maladie
+  count(maladies, name = "n") %>%
+  
+  # Calcul du pourcentage sur le total de répondants
+  mutate(pct = round(100 * n / nrow(donnees), 1)) %>%
+  
+  # --- ÉTAPE CLÉ POUR LE TOP 5 ---
+  arrange(desc(pct)) %>%
+  slice_head(n = 5) # On ne garde que les 5 premières lignes
+
+# 2. Création du graphique
+ggplot(maladies_tab, aes(x = reorder(maladies, pct), y = pct)) +
+  geom_col(fill = "#1e4387") + # Une couleur différente (orange) pour changer des réseaux sociaux
+  
+  # Étiquettes de pourcentage
+  geom_text(aes(label = paste0(pct, "%")), 
+            hjust = -0.1, 
+            size = 4, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  
+  coord_flip() +
+  
+  # On donne de l'espace à droite
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  
+  labs(
+    title = "Figure 7 : Top 5 des maladies les mieux connues par les jeunes",
+    subtitle = "Les maladies",
+    x = NULL,
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+#### 2. Les principaux obstacles à la santé
+
+
+```{r, fig.height=5, fig.width=8}
+# 1. Liste officielle avec la casse exacte de vos données
+categories_officielles <- c(
+  "Manque D’information", 
+  "Désintérêt / Manque De Motivation", 
+  "Coût Élevé Des Soins", 
+  "Difficulté D’accès Aux Services De Santé"
+)
+
+# 2. Préparation
+obstacles_tab <- donnees %>%
+  select(obstacles) %>% 
+  separate_rows(obstacles, sep = ", ") %>%
+  mutate(obstacles = str_to_title(str_trim(obstacles))) %>%
+  filter(!obstacles %in% c("Plusieurs Choix Sont Possibles", "", "NA")) %>%
+  
+  # Regroupement intelligent
+  mutate(obstacles = ifelse(obstacles %in% categories_officielles, obstacles, "Autres")) %>%
+  
+  count(obstacles, name = "n") %>%
+  mutate(pct = round(100 * n / nrow(donnees), 1)) %>%
+  
+  # Pour éviter que le texte ne soit coupé : on force un retour à la ligne si > 30 caractères
+  mutate(obstacles = str_wrap(obstacles, width = 30)) %>%
+  arrange(desc(pct))
+
+# 3. Graphique
+ggplot(obstacles_tab, aes(x = reorder(obstacles, pct), y = pct)) +
+  geom_col(fill = "#1e4387", width = 0.7) + 
+  geom_text(aes(label = paste0(pct, "%")), 
+            hjust = -0.1, 
+            size = 4, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  coord_flip() +
+  # On augmente l'expansion de l'axe Y pour laisser de la place aux labels (81.7%, etc.)
+  scale_y_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title = "Figure 8 : Obstacles à la prise en charge de la santé",
+    subtitle = "Freins identifiés par les répondants",
+    x = NULL,
+    y = "Taux de citation (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text.y = element_text(size = 11, face = "bold", lineheight = 0.8),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+
+### Section 4 : Intérêt & préférences
+
+#### 1. Intérêt pour la sensibilisation
+
+```{r}
+# 1. Préparation des données
+# On calcule le pourcentage pour chaque niveau d'intérêt
+interet_tab <- donnees %>%
+  count(interet_projet) %>%
+  mutate(pct = round(100 * n / sum(n), 1)) %>%
+  # On s'assure que les niveaux sont dans le bon sens (Pas intéressé -> Très intéressé)
+  mutate(interet_projet = factor(interet_projet, 
+                                 levels = c("Non, Pas Intéressé(E)", 
+                                            "Oui, Un Peu Intéressé(E)", 
+                                            "Oui, Très Intéressé(E)")))
+
+# 2. Création du graphique
+ggplot(interet_tab, aes(x = interet_projet, y = pct)) +
+  # Utilisation du bleu institutionnel #1e4387
+  geom_col(fill = "#1e4387", width = 0.6) +
+  
+  # Ajout des étiquettes de pourcentage au-dessus des barres
+  geom_text(aes(label = paste0(pct, "%")), 
+            vjust = -0.5, 
+            size = 5, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  
+  # On ajuste l'échelle pour ne pas que le texte du haut soit coupé
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  
+  labs(
+    title = "Figure 11 : Volonté de recevoir des contenus de sensibilisation",
+    subtitle = "Intéressé(e) à recevoir régulièrement des contenus",
+    x = NULL,
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text.x = element_text(size = 10, face = "bold"),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+#### 2. Formats de contenu préférés
+
+```{r, echo=FALSE, fig.height=5, fig.width=8}
+# 1. Préparation des données pour les formats
+formats_tab <- donnees %>%
+  select(formats) %>% 
+  # On sépare les formats par la virgule
+  separate_rows(formats, sep = ", ") %>%
+  
+  # Nettoyage : majuscule au début et retrait des espaces
+  mutate(formats = str_to_title(str_trim(formats))) %>%
+  
+  # On retire les textes techniques du questionnaire
+  filter(!formats %in% c("Plusieurs Choix Sont Possibles", "", "NA")) %>%
+  
+  # Comptage des citations
+  count(formats, name = "n") %>%
+  
+  # Calcul du pourcentage sur le total de répondants
+  mutate(pct = round(100 * n / nrow(donnees), 1)) %>%
+  
+  # On force le retour à la ligne pour les libellés longs (> 25 caractères)
+  mutate(formats = str_wrap(formats, width = 25)) %>%
+  arrange(desc(pct))
+
+# 2. Création du graphique en Bleu #1e4387
+ggplot(formats_tab, aes(x = reorder(formats, pct), y = pct)) +
+  geom_col(fill = "#1e4387", width = 0.7) + 
+  
+  # Ajout des étiquettes de pourcentage
+  geom_text(aes(label = paste0(pct, "%")), 
+            hjust = -0.1, 
+            size = 4, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  
+  coord_flip() +
+  
+  # On laisse de la place à droite pour les étiquettes
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  
+  labs(
+    title = "Figure 12 : Formats de contenu les plus appréciés",
+    subtitle = "Types de supports préférés",
+    x = NULL,
+    y = "Taux (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text.y = element_text(size = 11, face = "bold", lineheight = 0.8),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+
+#### 3. Les thèmes de santé
+
+```{r, echo=FALSE, fig.height=6, fig.width=9}
+# 1. Liste des thèmes officiels du formulaire
+themes_officiels <- c(
+  "Alimentation Et Sport",
+  "Prévention Des Ist/Vih",
+  "Hypertension Et Maladies Métaboliques",
+  "Addictions (Alcool, Tabac, Drogues, Réseaux Sociaux)",
+  "Santé Sexuelle Et Reproductive",
+  "Hygiène Et Prévention Des Infections"
+)
+
+# 2. Préparation des données
+themes_tab <- donnees %>%
+  select(themes) %>% 
+  separate_rows(themes, sep = ", ") %>%
+  mutate(themes = str_to_title(str_trim(themes))) %>%
+  filter(!themes %in% c("Plusieurs Choix Sont Possibles", "", "NA")) %>%
+  
+  # REGROUPEMENT : Si ce n'est pas dans la liste officielle, ça devient "Autres"
+  mutate(themes = ifelse(themes %in% themes_officiels, themes, "Autres")) %>%
+  
+  count(themes, name = "n") %>%
+  mutate(pct = round(100 * n / nrow(donnees), 1)) %>%
+  mutate(themes = str_wrap(themes, width = 35)) %>%
+  arrange(desc(pct))
+
+# 3. Graphique
+ggplot(themes_tab, aes(x = reorder(themes, pct), y = pct)) +
+  geom_col(fill = "#1e4387") + 
+  geom_text(aes(label = paste0(pct, "%")), hjust = -0.1, size = 4, fontface = "bold", color = "#1e4387") +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(title = "Figure 10 : Thématiques de santé d'intérêt", x = NULL, y = "Taux de citation (%)") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+        axis.text.y = element_text(size = 10, face = "bold"))
+```
+
+### Section 4 : Engagement & idées
+
+#### 1. Participation active
+
+```{r}
+# 1. Préparation des données sans filtre sur les valeurs manquantes
+engagement_final_tab <- donnees %>%
+  count(engagement_actif) %>%
+  # Calcul du pourcentage sur l'ensemble des lignes du tableau
+  mutate(pct = round(100 * n / sum(n), 1)) %>%
+  # Organisation logique des réponses existantes
+  mutate(engagement_actif = factor(engagement_actif, 
+                                   levels = c("Non", "Peut-Être", "Oui")))
+
+# 2. Création du graphique
+ggplot(engagement_final_tab, aes(x = engagement_actif, y = pct)) +
+  geom_col(fill = "#1e4387", width = 0.5) +
+  
+  # Ajout des pourcentages au-dessus des barres
+  geom_text(aes(label = paste0(pct, "%")), 
+            vjust = -0.5, 
+            size = 5, 
+            fontface = "bold", 
+            color = "#1e4387") +
+  
+  # Ajustement de l'échelle pour la visibilité
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  
+  labs(
+    title = "Figure 14 : Propension à participer activement au projet",
+    x = "Réponses",
+    y = "Pourcentage (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1e4387"),
+    axis.text = element_text(size = 11, face = "bold"),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+#### 2. Analyse des suggestions de sensibilisation
+
+L'analyse des réponses montre que pour réussir à sensibiliser les jeunes, il faut arrêter les longs discours et adopter leurs propres codes de communication. Les participants conseillent d'utiliser des formats très courts et visuels comme des vidéos en boucle ou des "stories" animées, diffusées de préférence le matin pour capter l'attention. Ils suggèrent de rendre le contenu interactif et amusant par des challenges ou des récompenses, tout en faisant appel à des visages familiers comme des influenceurs ou des artistes. Enfin, ils insistent sur l'importance d'une approche solidaire et inclusive qui ne délaisse pas les zones rurales, afin que chaque jeune, quel que soit son lieu de vie, se sente acteur de sa propre santé plutôt que simple spectateur.
+
